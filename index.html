@@ -6,171 +6,269 @@
 <title>Miles Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root {
-    --bg:#f9f8f6;--surface:#ffffff;--surface2:#f2f1ef;
-    --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
-    --text:#1a1a1a;--text2:#5a5a5a;--text3:#999;
-    --green:#1a7a4a;--green-bg:#e8f5ee;
-    --amber:#8a5a00;--amber-bg:#fef3dc;
-    --red:#b83232;--red-bg:#fdeaea;
-    --blue:#1a4a8a;--blue-bg:#e8eef8;
-    --radius:10px;--radius-sm:6px;
-  }
-  [data-theme="dark"] {
-    --bg:#111110;--surface:#1c1c1b;--surface2:#252524;
-    --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-    --text:#f0ede8;--text2:#a09d98;--text3:#5a5755;
-    --green:#4ade80;--green-bg:#0d2818;
-    --amber:#fbbf24;--amber-bg:#281a00;
-    --red:#f87171;--red-bg:#280d0d;
-    --blue:#93c5fd;--blue-bg:#0d1a28;
-  }
-  [data-theme="dark"] .tag-cason{background:#0d1a33;color:#93c5fd}
-  [data-theme="dark"] .tag-ellerie{background:#1a0d2e;color:#d8b4fe}
-  [data-theme="dark"] input,[data-theme="dark"] select{background:var(--surface2);border-color:var(--border2);color:var(--text)}
-  [data-theme="dark"] .btnp{background:#f0ede8;color:#111110;border-color:#f0ede8}
-  [data-theme="dark"] .btnp:hover{background:#d8d4ce;border-color:#d8d4ce}
-  [data-theme="dark"] .nb.active{background:#f0ede8;color:#111110;border-color:#f0ede8}
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
-  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
-  .login-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem 2.25rem;width:100%;max-width:380px}
-  .login-title{font-size:1.3rem;font-weight:normal;letter-spacing:-.02em;margin-bottom:.35rem}
-  .login-sub{font-size:13px;color:var(--text3);margin-bottom:1.5rem}
-  .login-field{margin-bottom:12px}
-  .login-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-family:'SF Mono','Fira Code',monospace;margin-bottom:4px;display:block}
-  .login-err{border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;margin-bottom:12px;display:none}
-  .login-err.show{display:block}
-  .login-err.err{background:var(--red-bg);color:var(--red)}
-  .login-err.ok{background:var(--green-bg);color:var(--green)}
-  .login-mode{font-size:12px;color:var(--text3);margin-top:12px;text-align:center}
-  .login-mode a{color:var(--blue);cursor:pointer}
-  .app{max-width:860px;margin:0 auto;padding:2rem 1.5rem 4rem}
-  .app-header{margin-bottom:2rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
-  .app-title{font-size:1.5rem;font-weight:normal;letter-spacing:-.02em}
-  .app-title span{color:var(--text3);font-size:.9rem;font-family:'SF Mono','Fira Code',monospace}
-  .header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .user-pill{font-size:11px;color:var(--text3);font-family:'SF Mono','Fira Code',monospace;padding:3px 10px;border:1px solid var(--border);border-radius:20px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sync-ind{font-size:11px;font-family:'SF Mono','Fira Code',monospace;min-width:60px;text-align:right}
-  .sync-ind.saving{color:var(--amber)}.sync-ind.saved{color:var(--green)}.sync-ind.error{color:var(--red)}
-  .nav{display:flex;gap:6px;margin-bottom:2rem;flex-wrap:wrap}
-  .nb{padding:5px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s}
-  .nb:hover{border-color:var(--text);color:var(--text)}
-  .nb.active{background:var(--text);color:#fff;border-color:var(--text)}
-  .sec{display:none}.sec.active{display:block}
-  .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.75rem}
-  .met{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem}
-  .ml{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;font-family:'SF Mono','Fira Code',monospace}
-  .mv{font-size:1.5rem;font-weight:normal;letter-spacing:-.02em}
-  .ms{font-size:11px;color:var(--text3);margin-top:2px}
-  .alert{background:var(--amber-bg);border:1px solid rgba(138,90,0,.2);border-radius:var(--radius-sm);padding:9px 13px;margin-bottom:8px;font-size:13px;color:var(--amber);display:flex;align-items:center;gap:8px}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:10px}
-  .ch{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-  .cn{font-size:14px;font-weight:bold;letter-spacing:-.01em}
-  .co{font-size:11px;color:var(--text3);margin-top:2px;font-family:'SF Mono','Fira Code',monospace}
-  .row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
-  .row:last-of-type{border-bottom:none}
-  .rl{color:var(--text2)}.rv{font-weight:bold;font-size:13px}
-  .bdg{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:bold;font-family:'SF Mono','Fira Code',monospace}
-  .bok{background:var(--green-bg);color:var(--green)}
-  .bwarn{background:var(--amber-bg);color:var(--amber)}
-  .bdng{background:var(--red-bg);color:var(--red)}
-  .binfo{background:var(--blue-bg);color:var(--blue)}
-  .bgray{background:var(--surface2);color:var(--text2)}
-  .owner-cason{border-left:4px solid #2563eb}
-  .owner-ellerie{border-left:4px solid #9333ea}
-  .tag-cason{background:#eff6ff;color:#1d4ed8}
-  .tag-ellerie{background:#faf5ff;color:#7e22ce}
-  input,select,textarea{width:100%;padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
-  input:focus,select:focus{border-color:var(--text)}
-  select{cursor:pointer}
-  .note{font-size:11px;color:var(--text3);margin-top:4px;font-family:'SF Mono','Fira Code',monospace}
-  .btn{padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s}
-  .btn:hover{background:var(--surface2)}
-  .btnp{background:var(--text);color:#fff;border-color:var(--text)}
-  .btnp:hover{opacity:.85}
-  .btnd{border-color:rgba(184,50,50,.3);color:var(--red)}
-  .btnd:hover{background:var(--red-bg)}
-  .theme-toggle{background:transparent;border:1px solid var(--border2);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:12px;color:var(--text2);font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:6px}
-  .theme-toggle:hover{border-color:var(--text);color:var(--text)}
-  .stitle{font-size:1.05rem;font-weight:normal;margin-bottom:1.1rem;letter-spacing:-.01em}
-  .pbar-wrap{background:var(--surface2);border-radius:20px;height:5px;margin:7px 0 4px;overflow:hidden}
-  .pbar{height:5px;border-radius:20px;background:var(--text);transition:width .4s ease}
-  .pbar.done{background:var(--green)}
-  .tbl{width:100%;border-collapse:collapse;font-size:13px}
-  .tbl th{font-size:11px;color:var(--text3);font-weight:normal;text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.06em;font-family:'SF Mono','Fira Code',monospace}
-  .tbl td{padding:8px;border-bottom:1px solid var(--border)}
-  .tbl tr:last-child td{border-bottom:none}
-  .tbl tr:hover td{background:var(--surface2)}
-  .rg{color:var(--green);font-weight:bold}.rw{color:var(--amber);font-weight:bold}
-  .tab-inner{display:flex;gap:6px;margin-bottom:1.1rem;flex-wrap:wrap}
-  .tab-btn{padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:12px;font-family:inherit;transition:all .15s}
-  .tab-btn.active{background:var(--surface2);color:var(--text);border-color:var(--text)}
-  .preview-box{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;margin:8px 0;display:none;border-left:3px solid var(--text)}
-  .preview-box.show{display:block}
-  .preview-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px}
-  .preview-label{color:var(--text2)}
-  .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .flabel{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-family:'SF Mono','Fira Code',monospace}
-  .tbl-wrap{overflow-x:auto}
-  @media(max-width:600px){.g2{grid-template-columns:1fr}.mgrid{grid-template-columns:repeat(2,1fr)}.app{padding:1rem 1rem 3rem}}
+:root {
+  --bg: #ffffff;
+  --bg2: #f5f5f7;
+  --bg3: #e8e8ed;
+  --surface: #ffffff;
+  --surface2: #f5f5f7;
+  --divider: rgba(0,0,0,0.08);
+  --divider2: rgba(0,0,0,0.14);
+  --text: #1d1d1f;
+  --text2: #6e6e73;
+  --text3: #aeaeb2;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --green: #34c759;
+  --green-bg: #f0faf2;
+  --green-text: #1a7a3a;
+  --amber: #ff9f0a;
+  --amber-bg: #fff8ee;
+  --amber-text: #7a4a00;
+  --red: #ff3b30;
+  --red-bg: #fff2f1;
+  --red-text: #8a1a1a;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --radius-sm: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #000000;
+  --bg2: #1c1c1e;
+  --bg3: #2c2c2e;
+  --surface: #1c1c1e;
+  --surface2: #2c2c2e;
+  --divider: rgba(255,255,255,0.08);
+  --divider2: rgba(255,255,255,0.14);
+  --text: #f5f5f7;
+  --text2: #98989d;
+  --text3: #48484a;
+  --accent: #2997ff;
+  --accent-hover: #0a84ff;
+  --green: #30d158;
+  --green-bg: #0a2e14;
+  --green-text: #30d158;
+  --amber: #ffd60a;
+  --amber-bg: #2a1f00;
+  --amber-text: #ffd60a;
+  --red: #ff453a;
+  --red-bg: #2a0a08;
+  --red-text: #ff453a;
+}
+[data-theme="dark"] input, [data-theme="dark"] select {
+  background: var(--bg3);
+  border-color: var(--divider2);
+  color: var(--text);
+}
+[data-theme="dark"] input::placeholder { color: var(--text3); }
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; min-height: 100vh; transition: background .2s, color .2s; }
+
+/* ── LOGIN ── */
+.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--bg2); }
+.login-box { background: var(--surface); border-radius: var(--radius-lg); padding: 2.5rem 2.25rem; width: 100%; max-width: 360px; }
+.login-logo { font-size: 2rem; margin-bottom: 1.5rem; text-align: center; }
+.login-title { font-size: 1.5rem; font-weight: 600; letter-spacing: -.02em; text-align: center; margin-bottom: .35rem; }
+.login-sub { font-size: 14px; color: var(--text2); text-align: center; margin-bottom: 2rem; }
+.login-field { margin-bottom: 12px; }
+.login-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; letter-spacing: .01em; }
+.login-err { border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; margin-bottom: 14px; display: none; }
+.login-err.show { display: block; }
+.login-err.err { background: var(--red-bg); color: var(--red-text); }
+.login-err.ok { background: var(--green-bg); color: var(--green-text); }
+.login-mode { font-size: 13px; color: var(--text2); margin-top: 14px; text-align: center; }
+.login-mode a { color: var(--accent); cursor: pointer; text-decoration: none; }
+.login-mode a:hover { text-decoration: underline; }
+.user-pick { padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--divider2); background: var(--bg2); color: var(--text2); cursor: pointer; font-size: 15px; font-weight: 500; font-family: var(--font); transition: all .15s; }
+.user-pick:hover { border-color: var(--accent); color: var(--text); }
+.user-pick.active { border-color: var(--accent); background: var(--bg); color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,0.12); }
+[data-theme="dark"] .user-pick.active { box-shadow: 0 0 0 3px rgba(41,151,255,0.18); }
+
+/* ── APP ── */
+.app { max-width: 840px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+.app-header { margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; }
+.app-title { font-size: 1.6rem; font-weight: 700; letter-spacing: -.03em; color: var(--text); }
+.app-title span { font-weight: 400; color: var(--text2); }
+.header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.user-pill { font-size: 12px; color: var(--text2); padding: 4px 12px; border: 1px solid var(--divider2); border-radius: 20px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sync-ind { font-size: 12px; min-width: 55px; text-align: right; }
+.sync-ind.saving { color: var(--amber); }
+.sync-ind.saved { color: var(--green); }
+.sync-ind.error { color: var(--red); }
+
+/* ── NAV ── */
+.nav { display: flex; gap: 0; margin-bottom: 2.5rem; background: var(--bg2); border-radius: var(--radius); padding: 3px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.nb { flex: 1; min-width: fit-content; padding: 7px 14px; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--text2); cursor: pointer; font-size: 13px; font-weight: 500; font-family: var(--font); transition: all .2s; white-space: nowrap; }
+.nb:hover { color: var(--text); }
+.nb.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); }
+[data-theme="dark"] .nb.active { box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+.sec { display: none; } .sec.active { display: block; }
+
+/* ── METRIC CARDS ── */
+.mgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+.met { background: var(--bg2); border-radius: var(--radius); padding: 1rem 1.1rem; }
+.ml { font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 6px; letter-spacing: .02em; text-transform: uppercase; }
+.mv { font-size: 1.6rem; font-weight: 600; letter-spacing: -.03em; color: var(--text); line-height: 1; }
+.ms { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+/* ── ALERT ── */
+.alert { background: var(--amber-bg); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 10px; font-size: 13px; color: var(--amber-text); display: flex; align-items: center; gap: 8px; }
+
+/* ── SECTION TITLE ── */
+.stitle { font-size: 1.1rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 1rem; color: var(--text); }
+
+/* ── CARD ── */
+.card { background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px; }
+[data-theme="light"] .card, :root .card { box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
+[data-theme="dark"] .card { background: var(--bg2); }
+.card-inner { padding: 1.1rem 1.25rem; }
+.card-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 1.25rem; border-top: 1px solid var(--divider); font-size: 14px; }
+.card-row:first-child { border-top: none; }
+.rl { color: var(--text2); font-size: 14px; }
+.rv { font-weight: 500; font-size: 14px; color: var(--text); }
+
+/* ── OWNER LABEL ── */
+.owner-label { font-size: 11px; font-weight: 500; color: var(--text3); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 8px; padding-left: 2px; }
+.owner-label.cason { color: #0071e3; }
+.owner-label.ellerie { color: #bf5af2; }
+
+/* ── OWNER ACCENT ── */
+.card.cason { border-left: 3px solid #0071e3; }
+.card.ellerie { border-left: 3px solid #bf5af2; }
+
+/* ── BADGES ── */
+.bdg { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; letter-spacing: .01em; }
+.bok { background: var(--green-bg); color: var(--green-text); }
+.bwarn { background: var(--amber-bg); color: var(--amber-text); }
+.bdng { background: var(--red-bg); color: var(--red-text); }
+.binfo { background: #e8f0fb; color: #0050a0; }
+.bgray { background: var(--bg3); color: var(--text2); }
+[data-theme="dark"] .binfo { background: #0a1f3a; color: #2997ff; }
+
+/* ── INPUTS ── */
+input, select, textarea { width: 100%; padding: 9px 12px; border-radius: var(--radius-sm); border: 1px solid var(--divider2); background: var(--bg2); color: var(--text); font-size: 14px; font-family: var(--font); outline: none; transition: border-color .15s, box-shadow .15s; -webkit-appearance: none; }
+input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,0.15); }
+select { cursor: pointer; background-image: none; }
+.flabel { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; letter-spacing: .01em; }
+.note { font-size: 12px; color: var(--text3); margin-top: 6px; }
+
+/* ── BUTTONS ── */
+.btn { padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--divider2); background: transparent; color: var(--text); cursor: pointer; font-size: 14px; font-weight: 500; font-family: var(--font); transition: all .15s; }
+.btn:hover { background: var(--bg2); }
+.btnp { background: var(--accent); color: #fff; border-color: transparent; border-radius: 980px; padding: 9px 20px; }
+.btnp:hover { background: var(--accent-hover); }
+.btnd { border-color: transparent; color: var(--red); background: var(--red-bg); }
+.btnd:hover { opacity: .8; }
+.btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 20px; }
+.btn-ghost { background: transparent; border: none; color: var(--accent); padding: 4px 0; font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font); }
+.btn-ghost:hover { opacity: .7; }
+
+/* ── THEME TOGGLE ── */
+.theme-btn { background: var(--bg2); border: none; border-radius: 20px; padding: 6px 14px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); font-family: var(--font); display: flex; align-items: center; gap: 6px; transition: all .15s; }
+.theme-btn:hover { color: var(--text); }
+.signout-btn { background: transparent; border: none; color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font); padding: 4px 0; }
+.signout-btn:hover { color: var(--red); }
+
+/* ── PROGRESS ── */
+.pbar-wrap { background: var(--bg3); border-radius: 20px; height: 4px; margin: 8px 0 4px; overflow: hidden; }
+.pbar { height: 4px; border-radius: 20px; background: var(--accent); transition: width .4s ease; }
+.pbar.done { background: var(--green); }
+
+/* ── TABLE ── */
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th { font-size: 11px; font-weight: 600; color: var(--text2); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--divider); text-transform: uppercase; letter-spacing: .05em; }
+.tbl td { padding: 10px; border-bottom: 1px solid var(--divider); color: var(--text); }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: var(--bg2); }
+.rg { color: var(--green-text); font-weight: 600; }
+.rw { color: var(--amber-text); font-weight: 500; }
+[data-theme="dark"] .rg { color: var(--green); }
+[data-theme="dark"] .rw { color: var(--amber); }
+
+/* ── TABS ── */
+.tab-row { display: flex; gap: 0; margin-bottom: 1.25rem; border-bottom: 1px solid var(--divider); }
+.tab-btn { padding: 8px 16px; border: none; background: transparent; color: var(--text2); cursor: pointer; font-size: 14px; font-weight: 500; font-family: var(--font); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── PREVIEW BOX ── */
+.preview-box { background: var(--bg2); border-radius: var(--radius-sm); padding: 12px 14px; margin: 10px 0; display: none; }
+.preview-box.show { display: block; }
+.preview-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
+.preview-label { color: var(--text2); }
+
+/* ── GRID ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tbl-wrap { overflow-x: auto; border-radius: var(--radius); }
+.section-group { margin-bottom: 2rem; }
+
+/* ── MISC ── */
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
+
+@media (max-width: 600px) {
+  .g2 { grid-template-columns: 1fr; }
+  .mgrid { grid-template-columns: repeat(2, 1fr); }
+  .app { padding: 1.25rem 1rem 4rem; }
+  .app-header { flex-direction: column; align-items: flex-start; }
+  .nav { border-radius: var(--radius); }
+}
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="loginScreen" class="login-wrap">
   <div class="login-box">
+    <div class="login-logo">✈️</div>
     <div class="login-title">Miles Tracker</div>
-    <div class="login-sub" id="loginSub">Sign in to your account</div>
     <div class="login-err" id="loginErr"></div>
     <div class="login-field">
-      <label class="login-label">Email</label>
-      <input id="loginEmail" type="email" placeholder="you@email.com" autocomplete="email">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
+        <button id="pickCason" class="user-pick active" onclick="pickUser('cason')">Cason</button>
+        <button id="pickEllerie" class="user-pick" onclick="pickUser('ellerie')">Ellerie</button>
+      </div>
     </div>
     <div class="login-field">
       <label class="login-label">Password</label>
-      <input id="loginPw" type="password" placeholder="Password" autocomplete="current-password">
+      <input id="loginPw" type="password" placeholder="••••••••" autocomplete="current-password">
     </div>
-    <div class="login-field" id="loginConfirmWrap" style="display:none">
-      <label class="login-label">Confirm password</label>
-      <input id="loginPwConfirm" type="password" placeholder="Confirm password">
-    </div>
-    <button class="btn btnp" style="width:100%;margin-top:4px;padding:9px" id="loginBtn" onclick="authAction()">Sign in</button>
-    <div class="login-mode">
-      <span id="loginModeText">Don't have an account?</span>
-      <a onclick="toggleAuthMode()"> <span id="loginModeLink">Register</span></a>
-    </div>
+    <button class="btn btnp" style="width:100%;margin-top:8px;font-size:15px" id="loginBtn" onclick="authAction()">Sign in</button>
   </div>
 </div>
 
+<!-- APP -->
 <div id="appScreen" style="display:none">
-  <div class="app">
-    <div class="app-header">
-      <div class="app-title">Miles Tracker <span>/ Cason & Ellerie</span></div>
-      <div class="header-right">
-        <span class="sync-ind" id="syncStatus"></span>
-        <span class="user-pill" id="userEmail"></span>
-        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"><span id="themeIcon">🌙</span><span id="themeLabel">Dark</span></button>
-        <button class="btn" style="font-size:12px;padding:4px 10px" onclick="signOut()">Sign out</button>
-      </div>
+<div class="app">
+  <div class="app-header">
+    <div class="app-title">Miles Tracker <span>/ Cason & Ellerie</span></div>
+    <div class="header-right">
+      <span class="sync-ind" id="syncStatus"></span>
+      <span class="user-pill" id="userEmail"></span>
+      <button class="theme-btn" onclick="toggleTheme()"><span id="themeIcon">🌙</span><span id="themeLabel">Dark</span></button>
+      <button class="signout-btn" onclick="signOut()">Sign out</button>
     </div>
-    <div class="nav">
-      <button class="nb active" onclick="show('dashboard')">Dashboard</button>
-      <button class="nb" onclick="show('cards')">CC points</button>
-      <button class="nb" onclick="show('miles')">Miles</button>
-      <button class="nb" onclick="show('goals')">Goals</button>
-      <button class="nb" onclick="show('convert')">Convert</button>
-      <button class="nb" onclick="show('log')">Log</button>
-      <button class="nb" onclick="show('chart')">Award chart</button>
-    </div>
-    <div id="dashboard" class="sec active"></div>
-    <div id="cards" class="sec"></div>
-    <div id="miles" class="sec"></div>
-    <div id="goals" class="sec"></div>
-    <div id="convert" class="sec"></div>
-    <div id="log" class="sec"></div>
-    <div id="chart" class="sec"></div>
   </div>
+
+  <div class="nav">
+    <button class="nb active" onclick="show('dashboard')">Dashboard</button>
+    <button class="nb" onclick="show('cards')">CC points</button>
+    <button class="nb" onclick="show('miles')">Miles</button>
+    <button class="nb" onclick="show('goals')">Goals</button>
+    <button class="nb" onclick="show('convert')">Convert</button>
+    <button class="nb" onclick="show('log')">Log</button>
+    <button class="nb" onclick="show('chart')">Award chart</button>
+  </div>
+
+  <div id="dashboard" class="sec active"></div>
+  <div id="cards" class="sec"></div>
+  <div id="miles" class="sec"></div>
+  <div id="goals" class="sec"></div>
+  <div id="convert" class="sec"></div>
+  <div id="log" class="sec"></div>
+  <div id="chart" class="sec"></div>
+</div>
 </div>
 
 <script>
@@ -179,22 +277,22 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 const sb=supabase.createClient(SURL,SKEY);
 
 const CARDS=[
-  {id:'ocbc',     name:'OCBC Rewards',      owner:'Cason',   cur:'OCBC$',  kf:0.4,  cm:0.29,note:'25,000 OCBC$ = 10,000 KF miles · Asia Miles lower (~0.29x), prefer KF'},
-  {id:'hsbc_rev', name:'HSBC Revolution',    owner:'Ellerie', cur:'Points', kf:0.33, cm:0.4, note:'30,000 pts = 10,000 KF miles · Asia Miles better at 0.4x'},
-  {id:'uob',      name:'UOB (pooled UNI$)',  owner:'Ellerie', cur:'UNI$',   kf:2.0,  cm:2.0, note:'Pooled: Ladies Solitaire & Preferred Platinum · 1 UNI$ = 2 miles (blocks of 10,000)'},
-  {id:'citi_rwd', name:'Citi Rewards',       owner:'Ellerie', cur:'Points', kf:0.4,  cm:0.4, note:'2,500 pts = 1,000 miles'},
-  {id:'citi_pm',  name:'Citi PremierMiles',  owner:'Ellerie', cur:'Miles',  kf:1.0,  cm:0.8, note:'1 Citi Mile = 1 KF or 0.8 Asia Miles'}
+  {id:'ocbc',     name:'OCBC Rewards',      owner:'Cason',   cur:'OCBC$',  kf:0.4,  cm:0.29, note:'25,000 OCBC$ = 10,000 KF miles · Asia Miles lower (~0.29x)'},
+  {id:'hsbc_rev', name:'HSBC Revolution',    owner:'Ellerie', cur:'Points', kf:0.33, cm:0.4,  note:'30,000 pts = 10,000 KF miles · Asia Miles better at 0.4x'},
+  {id:'uob',      name:'UOB (pooled UNI$)',  owner:'Ellerie', cur:'UNI$',   kf:2.0,  cm:2.0,  note:'Ladies Solitaire & Preferred Platinum pooled · 1 UNI$ = 2 miles (blocks of 10,000)'},
+  {id:'citi_rwd', name:'Citi Rewards',       owner:'Ellerie', cur:'Points', kf:0.4,  cm:0.4,  note:'2,500 pts = 1,000 miles'},
+  {id:'citi_pm',  name:'Citi PremierMiles',  owner:'Ellerie', cur:'Miles',  kf:1.0,  cm:0.8,  note:'1 Citi Mile = 1 KF or 0.8 Asia Miles'}
 ];
 const PROGS=[{id:'kf',name:'KrisFlyer',airline:'Singapore Airlines'},{id:'cm',name:'Asia Miles',airline:'Cathay Pacific'}];
 const ZONES=[
   {id:'z2', label:'Malaysia / Indonesia / Brunei',      eg:'KL, Bali, Jakarta',             pe_saver:null, biz_saver:22,   biz_adv:34},
-  {id:'z3', label:'SE Asia (Thailand, Vietnam, PH)',     eg:'Bangkok, Ho Chi Minh, Manila',  pe_saver:null, biz_saver:25,   biz_adv:38},
-  {id:'z4', label:'South China / HK / Taiwan',          eg:'Hong Kong, Taipei, Guangzhou',  pe_saver:28,   biz_saver:35.5, biz_adv:52},
-  {id:'z5', label:'North China (Beijing / Shanghai)',    eg:'Beijing, Shanghai',             pe_saver:36,   biz_saver:45,   biz_adv:65},
-  {id:'z6', label:'South Asia (India / Maldives / SL)', eg:'Mumbai, Delhi, Male',           pe_saver:36,   biz_saver:45,   biz_adv:65},
+  {id:'z3', label:'SE Asia — Thailand, Vietnam, PH',    eg:'Bangkok, Ho Chi Minh, Manila',  pe_saver:null, biz_saver:25,   biz_adv:38},
+  {id:'z4', label:'South China / Hong Kong / Taiwan',   eg:'Hong Kong, Taipei, Guangzhou',  pe_saver:28,   biz_saver:35.5, biz_adv:52},
+  {id:'z5', label:'North China — Beijing / Shanghai',   eg:'Beijing, Shanghai',             pe_saver:36,   biz_saver:45,   biz_adv:65},
+  {id:'z6', label:'South Asia — India / Maldives',      eg:'Mumbai, Delhi, Male',           pe_saver:36,   biz_saver:45,   biz_adv:65},
   {id:'z7', label:'Japan / South Korea',                eg:'Tokyo, Osaka, Seoul',           pe_saver:39.5, biz_saver:54.5, biz_adv:81},
   {id:'z8', label:'Australia — Perth / Darwin',         eg:'Perth, Darwin',                 pe_saver:null, biz_saver:42.5, biz_adv:62},
-  {id:'z9', label:'Australia (Others) / New Zealand',   eg:'Sydney, Melbourne, Auckland',   pe_saver:53.5, biz_saver:72,   biz_adv:105},
+  {id:'z9', label:'Australia (East) / New Zealand',     eg:'Sydney, Melbourne, Auckland',   pe_saver:53.5, biz_saver:72,   biz_adv:105},
   {id:'z10',label:'Middle East / Africa / Turkey',      eg:'Dubai, Istanbul, Johannesburg', pe_saver:51.5, biz_saver:68,   biz_adv:92},
   {id:'z11',label:'Europe',                             eg:'London, Paris, Frankfurt',      pe_saver:74.5, biz_saver:108.5,biz_adv:155},
 ];
@@ -206,8 +304,7 @@ function mkDefault(){
   const mb={};PROGS.forEach(p=>{mb[p.id]={bal:0,exp:'',upd:td()};});
   return{cb,mb,goals:[],log:[]};
 }
-let S=mkDefault();
-let saveTimer=null;
+let S=mkDefault(), saveTimer=null;
 
 function td(){return new Date().toISOString().split('T')[0];}
 function fmtN(n){return Math.round(n).toLocaleString();}
@@ -216,14 +313,14 @@ function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-
 function totalKF(){return CARDS.reduce((s,c)=>s+(S.cb[c.id].bal||0)*c.kf,0);}
 function totalCM(){return CARDS.reduce((s,c)=>s+(S.cb[c.id].bal||0)*c.cm,0);}
 
-function setSync(cls,msg){const el=document.getElementById('syncStatus');if(el){el.className='sync-ind '+cls;el.textContent=msg;}}
+function setSync(cls,msg){const el=document.getElementById('syncStatus');if(el){el.className='sync-ind '+(cls||'');el.textContent=msg;}}
 
 async function loadDB(){
   setSync('saving','Loading...');
   try{
     const{data,error}=await sb.from('tracker_data').select('key,value');
     if(error)throw error;
-    if(!data||!data.length){S=mkDefault();setSync('saved','Ready');return;}
+    if(!data||!data.length){S=mkDefault();setSync('saved','Ready');setTimeout(()=>setSync('',''),2000);return;}
     const m=mkDefault();
     data.forEach(r=>{
       if(r.key==='cb')Object.assign(m.cb,r.value);
@@ -243,48 +340,39 @@ async function saveDB(key,val){
     setSync('saved','Saved');setTimeout(()=>setSync('',''),2000);
   }catch(e){console.error(e);setSync('error','Save failed');}
 }
-
 function qsave(key,val){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveDB(key,val),600);}
 function saveAll(){saveDB('cb',S.cb);saveDB('mb',S.mb);saveDB('goals',S.goals);saveDB('log',S.log);}
 
-/* AUTH */
-let authMode='signin';
-function toggleAuthMode(){
-  authMode=authMode==='signin'?'register':'signin';
-  const si=authMode==='signin';
-  document.getElementById('loginSub').textContent=si?'Sign in to your account':'Create a new account';
-  document.getElementById('loginBtn').textContent=si?'Sign in':'Register';
-  document.getElementById('loginModeText').textContent=si?'Don\'t have an account?':'Already have an account?';
-  document.getElementById('loginModeLink').textContent=si?'Register':'Sign in';
-  document.getElementById('loginConfirmWrap').style.display=si?'none':'block';
-  const e=document.getElementById('loginErr');e.classList.remove('show','err','ok');
+/* ── AUTH ── */
+const USERS={
+  cason:'cason@miles-tracker.app',
+  ellerie:'ellerie@miles-tracker.app'
+};
+let selectedUser='cason';
+
+function pickUser(name){
+  selectedUser=name;
+  document.getElementById('pickCason').classList.toggle('active',name==='cason');
+  document.getElementById('pickEllerie').classList.toggle('active',name==='ellerie');
+  document.getElementById('loginErr').className='login-err';
 }
 
-function showErr(msg,isOk){
+function showAuthErr(msg,isOk){
   const e=document.getElementById('loginErr');
   e.textContent=msg;e.className='login-err show '+(isOk?'ok':'err');
 }
 
 async function authAction(){
-  const email=document.getElementById('loginEmail').value.trim();
   const pw=document.getElementById('loginPw').value;
-  if(!email||!pw){showErr('Please enter email and password.');return;}
-  const btn=document.getElementById('loginBtn');
-  btn.textContent='Please wait...';btn.disabled=true;
+  if(!pw){showAuthErr('Please enter your password.');return;}
+  const email=USERS[selectedUser];
+  const btn=document.getElementById('loginBtn');btn.textContent='Signing in...';btn.disabled=true;
   try{
-    if(authMode==='register'){
-      const c=document.getElementById('loginPwConfirm').value;
-      if(pw!==c){showErr('Passwords do not match.');return;}
-      const{error}=await sb.auth.signUp({email,password:pw});
-      if(error)throw error;
-      showErr('Account created! You can now sign in.',true);
-      setTimeout(()=>toggleAuthMode(),1500);
-    } else {
-      const{error}=await sb.auth.signInWithPassword({email,password:pw});
-      if(error)throw error;
-    }
-  }catch(e){showErr(e.message||'Authentication failed.');}
-  finally{btn.textContent=authMode==='signin'?'Sign in':'Register';btn.disabled=false;}
+    const{error}=await sb.auth.signInWithPassword({email,password:pw});
+    if(error)throw error;
+  }catch(e){
+    showAuthErr('Incorrect password. Try again.');
+  }finally{btn.textContent='Sign in';btn.disabled=false;}
 }
 
 async function signOut(){
@@ -294,35 +382,33 @@ async function signOut(){
   document.getElementById('loginPw').value='';
 }
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none')authAction();
-});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none')authAction();});
 
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(session){
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('appScreen').style.display='block';
-    document.getElementById('userEmail').textContent=session.user.email;
-    await loadDB();
-    render();
-  } else {
+    const name=session.user.email===USERS.cason?'Cason':'Ellerie';
+    document.getElementById('userEmail').textContent=name;
+    await loadDB();render();
+  }else{
     document.getElementById('appScreen').style.display='none';
     document.getElementById('loginScreen').style.display='flex';
   }
 });
 
-/* NAV */
-const NLABELS={dashboard:'Dashboard',cards:'CC points',miles:'Miles',goals:'Goals',convert:'Convert',log:'Log',chart:'Award chart'};
+/* ── NAV ── */
+const NL={dashboard:'Dashboard',cards:'CC points',miles:'Miles',goals:'Goals',convert:'Convert',log:'Log',chart:'Award chart'};
 function show(id){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nb').forEach(b=>{if(b.textContent===NLABELS[id])b.classList.add('active');});
+  document.querySelectorAll('.nb').forEach(b=>{if(b.textContent===NL[id])b.classList.add('active');});
   render();
 }
 function render(){rDash();rCards();rMiles();rGoals();rConvert();rLog();rChart();}
 
-/* DASHBOARD */
+/* ── DASHBOARD ── */
 function rDash(){
   const el=document.getElementById('dashboard');
   const alerts=[];
@@ -332,82 +418,115 @@ function rDash(){
   let h=`<div class="mgrid">
     <div class="met"><div class="ml">KrisFlyer</div><div class="mv">${fmtN(kfB)}</div><div class="ms">miles</div></div>
     <div class="met"><div class="ml">Asia Miles</div><div class="mv">${fmtN(cmB)}</div><div class="ms">miles</div></div>
-    <div class="met"><div class="ml">Convertible est.</div><div class="mv">${fmtN(totalKF())}</div><div class="ms">→ KrisFlyer</div></div>
-    <div class="met"><div class="ml">Goals</div><div class="mv">${done}/${S.goals.length}</div><div class="ms">completed</div></div>
-    <div class="met"><div class="ml">Expiry alerts</div><div class="mv" style="color:${alerts.length?'var(--amber)':'var(--green)'}">${alerts.length}</div><div class="ms">${alerts.length?'within 90 days':'all clear'}</div></div>
+    <div class="met"><div class="ml">Convertible</div><div class="mv">${fmtN(totalKF())}</div><div class="ms">est. → KrisFlyer</div></div>
+    <div class="met"><div class="ml">Goals</div><div class="mv">${done}<span style="font-size:1rem;font-weight:400;color:var(--text3)">/${S.goals.length}</span></div><div class="ms">completed</div></div>
+    <div class="met"><div class="ml">Expiry</div><div class="mv" style="color:${alerts.length?'var(--amber)':'var(--green)'}">${alerts.length}</div><div class="ms">${alerts.length?'alerts':'all clear'}</div></div>
   </div>`;
-  alerts.forEach(a=>{h+=`<div class="alert">⚠ <span><strong>${a.name}</strong> — ${fmtN(a.bal)} miles expiring in <strong>${a.days} day${a.days!==1?'s':''}</strong></span></div>`;});
+  alerts.forEach(a=>{h+=`<div class="alert"><span>⚠️</span><span><strong>${a.name}</strong> — ${fmtN(a.bal)} miles expiring in <strong>${a.days} day${a.days!==1?'s':''}</strong></span></div>`;});
   const active=S.goals.filter(g=>(g.prog==='kf'?kfB:cmB)<g.target);
   if(active.length){
-    h+=`<div class="stitle" style="margin-top:1.5rem">Active goals</div>`;
+    h+=`<div class="section-group"><div class="stitle">Active goals</div>`;
     active.slice(0,3).forEach(g=>{
       const bal=g.prog==='kf'?kfB:cmB,pct=Math.min(100,Math.round((bal/g.target)*100)),need=Math.max(0,g.target-bal);
-      h+=`<div class="card" style="padding:.9rem 1.1rem;margin-bottom:8px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:13px;font-weight:bold">${g.name}</span><span class="bdg ${pct>=100?'bok':'binfo'}">${pct}%</span></div>
+      h+=`<div class="card"><div class="card-inner">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">
+          <span style="font-size:14px;font-weight:600">${g.name}</span>
+          <span style="font-size:13px;color:var(--text2)">${pct}%</span>
+        </div>
         <div class="pbar-wrap"><div class="pbar ${pct>=100?'done':''}" style="width:${pct}%"></div></div>
-        <div style="font-size:11px;color:var(--text3);font-family:'SF Mono','Fira Code',monospace">${fmtN(bal)} / ${fmtN(g.target)} ${g.prog==='kf'?'KF':'Asia'} miles${need>0?' · need '+fmtN(need)+' more':''}</div>
-      </div>`;
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-top:4px">
+          <span>${fmtN(bal)} / ${fmtN(g.target)} ${g.prog==='kf'?'KF':'AM'} miles</span>
+          <span>${pct>=100?'<span style="color:var(--green-text)">Ready to redeem</span>':'Need '+fmtN(need)+' more'}</span>
+        </div>
+      </div></div>`;
     });
+    h+=`</div>`;
   }
-  h+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:1.5rem">
-    <button class="btn" onclick="show('cards')">Update CC points</button>
-    <button class="btn" onclick="show('miles')">Update miles</button>
-    <button class="btn" onclick="show('goals')">Manage goals</button>
-    <button class="btn" onclick="show('chart')">Award chart</button>
+  h+=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:.5rem">
+    <button class="btn btn-sm" onclick="show('cards')">Update CC points</button>
+    <button class="btn btn-sm" onclick="show('miles')">Update miles</button>
+    <button class="btn btn-sm" onclick="show('goals')">Goals</button>
+    <button class="btn btn-sm" onclick="show('chart')">Award chart</button>
   </div>`;
   el.innerHTML=h;
 }
 
-/* CC POINTS */
+/* ── CC POINTS ── */
 function rCards(){
   const el=document.getElementById('cards');
   function ch(c){
     const d=S.cb[c.id],estKF=Math.round((d.bal||0)*c.kf);
-    const oc=c.owner==='Cason'?'owner-cason':'owner-ellerie',tc=c.owner==='Cason'?'tag-cason':'tag-ellerie';
-    return `<div class="card ${oc}">
-      <div class="ch"><div><div class="cn">${c.name}</div><div class="co" style="margin-top:3px"><span class="bdg ${tc}" style="font-size:10px;padding:1px 7px">${c.owner}</span></div></div><span class="bdg binfo">${c.cur}</span></div>
-      <div class="row"><span class="rl">Balance</span><span class="rv">${fmtN(d.bal||0)}</span></div>
-      <div class="row"><span class="rl">→ KrisFlyer est.</span><span class="rv rg">${fmtN(estKF)} miles</span></div>
-      <div class="row"><span class="rl">Last updated</span><span class="rv" style="color:var(--text3)">${fmtDate(d.upd)}</span></div>
-      <div style="margin-top:12px;display:flex;gap:6px"><input id="cb_${c.id}" type="number" min="0" placeholder="New balance" style="flex:1"><button class="btn btnp" onclick="updCard('${c.id}')">Save</button></div>
-      <div class="note">${c.note}</div>
+    const cls=c.owner==='Cason'?'cason':'ellerie';
+    return `<div class="card ${cls}"><div class="card-inner">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:3px">${c.name}</div>
+          <div style="font-size:12px;color:var(--text3)">${c.cur}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:1.4rem;font-weight:600;letter-spacing:-.02em;line-height:1">${fmtN(d.bal||0)}</div>
+          <div style="font-size:12px;color:var(--green-text);margin-top:3px">${fmtN(estKF)} KF miles</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-row"><span class="rl">Last updated</span><span class="rv" style="color:var(--text3)">${fmtDate(d.upd)}</span></div>
+    <div class="card-row" style="gap:8px;padding:12px 1.25rem">
+      <input id="cb_${c.id}" type="number" min="0" placeholder="New balance" style="flex:1;margin:0">
+      <button class="btn btnp btn-sm" onclick="updCard('${c.id}')" style="white-space:nowrap">Save</button>
+    </div>
+    <div style="padding:0 1.25rem 12px;font-size:12px;color:var(--text3)">${c.note}</div>
     </div>`;
   }
-  let h=`<div class="stitle">Credit card points</div>`;
-  h+=`<div style="font-size:11px;font-weight:600;color:#1d4ed8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Cason</div>`;
+  let h=`<div class="section-group"><div class="stitle">Credit card points</div>`;
+  h+=`<div class="owner-label cason">Cason</div>`;
   CARDS.filter(c=>c.owner==='Cason').forEach(c=>{h+=ch(c);});
-  h+=`<div style="font-size:11px;font-weight:600;color:#7e22ce;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px">Ellerie</div>`;
+  h+=`<div class="owner-label ellerie" style="margin-top:1.5rem">Ellerie</div>`;
   CARDS.filter(c=>c.owner==='Ellerie').forEach(c=>{h+=ch(c);});
+  h+=`</div>`;
   el.innerHTML=h;
 }
-
 function updCard(id){
   const v=parseFloat(document.getElementById('cb_'+id).value);
   if(!isNaN(v)&&v>=0){S.cb[id]={bal:v,upd:td()};document.getElementById('cb_'+id).value='';qsave('cb',S.cb);render();}
 }
 
-/* MILES */
+/* ── MILES ── */
 function rMiles(){
   const el=document.getElementById('miles');
-  let h=`<div class="stitle">Miles balances</div>`;
+  let h=`<div class="section-group"><div class="stitle">Miles balances</div>`;
   PROGS.forEach(p=>{
     const d=S.mb[p.id],days=daysTo(d.exp);
-    let bc='binfo',bt='No expiry set';
-    if(days!==null){if(days<=30){bc='bdng';bt=days+'d left';}else if(days<=90){bc='bwarn';bt=days+'d left';}else{bc='bok';bt=days+'d left';}}
-    h+=`<div class="card">
-      <div class="ch"><div><div class="cn">${p.name}</div><div class="co">${p.airline}</div></div><span class="bdg ${bc}">${bt}</span></div>
-      <div style="font-size:1.4rem;font-weight:normal;letter-spacing:-.02em;margin-bottom:3px">${fmtN(d.bal||0)} miles</div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:14px;font-family:'SF Mono','Fira Code',monospace">${d.exp?'Expires '+fmtDate(d.exp):'Set an expiry date below'}</div>
-      <div class="g2" style="margin-bottom:10px">
+    let bc='',bt='No expiry set',bstyle='color:var(--text3)';
+    if(days!==null){
+      if(days<=30){bt=days+'d left';bstyle='color:var(--red-text)';}
+      else if(days<=90){bt=days+'d left';bstyle='color:var(--amber-text)';}
+      else{bt=days+'d left';bstyle='color:var(--green-text)';}
+    }
+    h+=`<div class="card"><div class="card-inner">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:2px">${p.name}</div>
+          <div style="font-size:12px;color:var(--text3)">${p.airline}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:1.6rem;font-weight:600;letter-spacing:-.03em;line-height:1">${fmtN(d.bal||0)}</div>
+          <div style="font-size:12px;margin-top:4px;${bstyle}">${bt}</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-row" style="padding:14px 1.25rem">
+      <div class="g2" style="width:100%;gap:10px">
         <div><div class="flabel">Balance</div><input id="mb_${p.id}" type="number" min="0" placeholder="${fmtN(d.bal||0)}"></div>
         <div><div class="flabel">Expiry date</div><input id="me_${p.id}" type="date" value="${d.exp||''}"></div>
       </div>
+    </div>
+    <div style="padding:0 1.25rem 14px">
       <button class="btn btnp" style="width:100%" onclick="updMiles('${p.id}')">Save</button>
-    </div>`;
+    </div></div>`;
   });
+  h+=`</div>`;
   el.innerHTML=h;
 }
-
 function updMiles(id){
   const v=parseFloat(document.getElementById('mb_'+id).value),e=document.getElementById('me_'+id).value;
   if(!isNaN(v)&&v>=0)S.mb[id].bal=v;
@@ -415,38 +534,45 @@ function updMiles(id){
   S.mb[id].upd=td();qsave('mb',S.mb);render();
 }
 
-/* GOALS */
+/* ── GOALS ── */
 function rGoals(){
   const el=document.getElementById('goals'),kfB=S.mb.kf.bal||0,cmB=S.mb.cm.bal||0;
-  let h=`<div class="stitle">Redemption goals</div>
-  <div class="card" style="margin-bottom:1.5rem">
-    <div style="font-size:13px;font-weight:bold;margin-bottom:12px">Add a new goal</div>
-    <div style="display:grid;gap:10px">
+  let h=`<div class="section-group"><div class="stitle">Redemption goals</div>
+  <div class="card"><div class="card-inner">
+    <div style="font-size:14px;font-weight:600;margin-bottom:14px">New goal</div>
+    <div style="display:grid;gap:12px">
       <div><div class="flabel">Goal name</div><input id="g_name" placeholder="e.g. Business class to Tokyo"></div>
       <div class="g2">
         <div><div class="flabel">Programme</div><select id="g_prog"><option value="kf">KrisFlyer</option><option value="cm">Asia Miles</option></select></div>
-        <div><div class="flabel">Miles needed</div><input id="g_target" type="number" min="1000" placeholder="e.g. 108500"></div>
+        <div><div class="flabel">Miles needed</div><input id="g_target" type="number" min="1000" placeholder="e.g. 109000"></div>
       </div>
-      <div><div class="flabel">Note (optional)</div><input id="g_note" placeholder="e.g. 2 pax, Saver, London return"></div>
+      <div><div class="flabel">Note (optional)</div><input id="g_note" placeholder="e.g. 2 pax, Saver, return"></div>
       <button class="btn btnp" onclick="addGoal()">Add goal</button>
     </div>
-  </div>
-  <p style="font-size:12px;color:var(--text3);margin-bottom:1.1rem">Use the <button class="btn" style="padding:2px 10px;font-size:12px" onclick="show('chart')">Award chart</button> tab to look up miles needed.</p>`;
-  if(!S.goals.length){h+=`<p style="text-align:center;padding:2.5rem;color:var(--text3);font-size:13px">No goals yet.</p>`;}
+  </div></div>
+  <p style="font-size:13px;color:var(--text3);margin:1rem 0 1.25rem">Use the <button class="btn-ghost" onclick="show('chart')">Award chart</button> to look up miles needed, then add as a goal directly.</p>`;
+  if(!S.goals.length){h+=`<div class="empty-state">No goals yet.</div>`;}
   else S.goals.forEach((g,i)=>{
     const bal=g.prog==='kf'?kfB:cmB,pct=Math.min(100,Math.round((bal/g.target)*100)),need=Math.max(0,g.target-bal),done=pct>=100;
-    h+=`<div class="card">
-      <div class="ch">
-        <div><div class="cn">${g.name}</div><div class="co">${g.prog==='kf'?'KrisFlyer':'Asia Miles'}${g.note?' · '+g.note:''}</div></div>
-        <div style="display:flex;gap:6px;align-items:center"><span class="bdg ${done?'bok':'binfo'}">${pct}%</span><button class="btn btnd" style="padding:3px 10px;font-size:11px" onclick="delGoal(${i})">Remove</button></div>
+    h+=`<div class="card"><div class="card-inner">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div>
+          <div style="font-size:15px;font-weight:600">${g.name}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">${g.prog==='kf'?'KrisFlyer':'Asia Miles'}${g.note?' · '+g.note:''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:13px;font-weight:500;color:${done?'var(--green-text)':'var(--text2)'}">${pct}%</span>
+          <button class="btn btnd btn-sm" onclick="delGoal(${i})">Remove</button>
+        </div>
       </div>
       <div class="pbar-wrap"><div class="pbar ${done?'done':''}" style="width:${pct}%"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:5px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-top:5px">
         <span>${fmtN(bal)} / ${fmtN(g.target)} miles</span>
-        <span>${done?'<span style="color:var(--green);font-weight:bold">Ready to redeem!</span>':'Need '+fmtN(need)+' more'}</span>
+        <span>${done?'<span style="color:var(--green-text);font-weight:500">Ready to redeem</span>':'Need '+fmtN(need)+' more'}</span>
       </div>
-    </div>`;
+    </div></div>`;
   });
+  h+=`</div>`;
   el.innerHTML=h;
 }
 function addGoal(){
@@ -456,59 +582,61 @@ function addGoal(){
 }
 function delGoal(i){S.goals.splice(i,1);qsave('goals',S.goals);render();}
 
-/* CONVERT */
+/* ── CONVERT ── */
 function rConvert(){
   const el=document.getElementById('convert');
-  let h=`<div class="stitle">Conversion rates & recommendations</div>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Card</th><th>Owner</th><th>Balance</th><th>→ KF</th><th>→ AM</th><th>Est. KF miles</th><th>Priority</th></tr></thead><tbody>`;
+  let h=`<div class="section-group"><div class="stitle">Conversion rates</div>
+  <div class="card"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Card</th><th>Owner</th><th>Balance</th><th>→ KF</th><th>→ AM</th><th>Est. KF miles</th><th>Priority</th></tr></thead><tbody>`;
   [...CARDS].sort((a,b)=>b.kf-a.kf).forEach(c=>{
     const bal=S.cb[c.id].bal||0,estKF=Math.round(bal*c.kf);
     const kc=c.kf>=2?'rg':c.kf>=1?'rw':'';
-    const pri=c.kf>=2?'<span class="bdg bok">Convert first</span>':c.kf>=1?'<span class="bdg binfo">When needed</span>':'<span class="bdg bgray">Minimise fees</span>';
-    const ot=c.owner==='Cason'?'<span class="bdg tag-cason" style="font-size:10px">Cason</span>':'<span class="bdg tag-ellerie" style="font-size:10px">Ellerie</span>';
-    h+=`<tr><td style="font-weight:bold">${c.name}</td><td>${ot}</td><td>${fmtN(bal)}</td><td class="${kc}">${c.kf}x</td><td style="color:var(--text2)">${c.cm}x</td><td style="font-weight:bold">${fmtN(estKF)}</td><td>${pri}</td></tr>`;
+    const pri=c.kf>=2?'<span class="bdg bok">First</span>':c.kf>=1?'<span class="bdg binfo">When needed</span>':'<span class="bdg bgray">Minimise fees</span>';
+    const ot=`<span style="font-size:12px;color:${c.owner==='Cason'?'#0071e3':'#bf5af2'}">${c.owner}</span>`;
+    h+=`<tr><td style="font-weight:500">${c.name}</td><td>${ot}</td><td>${fmtN(bal)}</td><td class="${kc}">${c.kf}x</td><td style="color:var(--text2)">${c.cm}x</td><td style="font-weight:500">${fmtN(estKF)}</td><td>${pri}</td></tr>`;
   });
   const tKF=Math.round(totalKF()),tCM=Math.round(totalCM());
-  h+=`<tr style="border-top:2px solid var(--border2)"><td colspan="5" style="font-weight:bold;padding-top:10px">Total if all converted</td><td style="font-weight:bold">${fmtN(tKF)} KF</td><td style="color:var(--text2)">${fmtN(tCM)} AM</td></tr></tbody></table></div>
-  <p style="margin-top:.6rem;font-size:11px;color:var(--text3);font-family:'SF Mono','Fira Code',monospace">Transfer fees may apply. Rates as of Apr 2026.</p>
-  <div style="margin-top:2rem"><div class="stitle">Log a conversion</div>
-  <p style="font-size:12px;color:var(--text3);margin-bottom:1rem;font-family:'SF Mono','Fira Code',monospace">Points deducted and miles credited automatically on confirm.</p>
-  <div class="card">
-    <div class="g2" style="margin-bottom:10px">
+  h+=`<tr style="border-top:2px solid var(--divider2)"><td colspan="5" style="font-weight:600;padding-top:12px">Total if all converted</td><td style="font-weight:600">${fmtN(tKF)} KF</td><td style="color:var(--text2);font-size:12px">${fmtN(tCM)} AM</td></tr>
+  </tbody></table></div></div>
+  <p style="font-size:12px;color:var(--text3);margin:.75rem 0 2rem">Transfer fees may apply. Rates as of April 2026.</p></div>
+
+  <div class="section-group"><div class="stitle">Log a conversion</div>
+  <p style="font-size:13px;color:var(--text3);margin-bottom:1rem">Points are deducted and miles credited automatically on confirm.</p>
+  <div class="card"><div class="card-inner">
+    <div class="g2" style="margin-bottom:12px">
       <div><div class="flabel">From card</div><select id="lc_card">${CARDS.map(c=>`<option value="${c.id}">${c.name} (${fmtN(S.cb[c.id].bal||0)} ${c.cur})</option>`).join('')}</select></div>
       <div><div class="flabel">To programme</div><select id="lc_prog"><option value="kf">KrisFlyer</option><option value="cm">Asia Miles</option></select></div>
     </div>
-    <div class="g2" style="margin-bottom:10px">
-      <div><div class="flabel">Points to convert</div><input id="lc_pts" type="number" min="1" placeholder="e.g. 10000"></div>
+    <div class="g2" style="margin-bottom:12px">
+      <div><div class="flabel">Points to convert</div><input id="lc_pts" type="number" min="1" placeholder="e.g. 10,000"></div>
       <div><div class="flabel">Miles received</div><input id="lc_miles" type="number" min="1" placeholder="auto-calculated"></div>
     </div>
-    <div style="margin-bottom:12px"><div class="flabel">Date</div><input id="lc_date" type="date" value="${td()}"></div>
+    <div style="margin-bottom:14px"><div class="flabel">Date</div><input id="lc_date" type="date" value="${td()}"></div>
     <div class="preview-box" id="conv_preview">
-      <div style="font-size:11px;font-weight:bold;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;font-family:'SF Mono','Fira Code',monospace">What will happen</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">What will happen</div>
       <div class="preview-row"><span class="preview-label" id="prev_card_label">Card</span><span id="prev_card_val" style="font-size:13px"></span></div>
       <div class="preview-row"><span class="preview-label" id="prev_miles_label">Miles</span><span id="prev_miles_val" style="font-size:13px"></span></div>
     </div>
-    <button class="btn btnp" style="width:100%;margin-top:10px" onclick="logConv()">Confirm conversion</button>
-  </div></div>`;
+    <button class="btn btnp" style="width:100%;margin-top:4px" onclick="logConv()">Confirm conversion</button>
+  </div></div></div>`;
   el.innerHTML=h;
   function upPrev(){
     const cid=document.getElementById('lc_card').value,prog=document.getElementById('lc_prog').value,pts=parseFloat(document.getElementById('lc_pts').value);
     const card=CARDS.find(c=>c.id===cid);
     if(!card||isNaN(pts)||pts<=0){document.getElementById('conv_preview').classList.remove('show');return;}
-    const rate=prog==='kf'?card.kf:card.cm,miles=Math.round(pts*rate);
+    const miles=Math.round(pts*(prog==='kf'?card.kf:card.cm));
     document.getElementById('lc_miles').value=miles;
     const cb=S.cb[cid].bal||0,nb=Math.max(0,cb-pts),cm2=S.mb[prog].bal||0,nm=cm2+miles;
     document.getElementById('prev_card_label').textContent=card.name;
     document.getElementById('prev_card_val').innerHTML=`${fmtN(cb)} → <strong style="color:var(--red)">${fmtN(nb)}</strong> ${card.cur}`;
     document.getElementById('prev_miles_label').textContent=prog==='kf'?'KrisFlyer':'Asia Miles';
-    document.getElementById('prev_miles_val').innerHTML=`${fmtN(cm2)} → <strong style="color:var(--green)">${fmtN(nm)}</strong> miles`;
+    document.getElementById('prev_miles_val').innerHTML=`${fmtN(cm2)} → <strong style="color:var(--green-text)">${fmtN(nm)}</strong> miles`;
     document.getElementById('conv_preview').classList.add('show');
   }
   document.getElementById('lc_pts').addEventListener('input',upPrev);
   document.getElementById('lc_card').addEventListener('change',()=>{document.getElementById('lc_pts').value='';document.getElementById('conv_preview').classList.remove('show');upPrev();});
   document.getElementById('lc_prog').addEventListener('change',upPrev);
 }
-
 function logConv(){
   const cid=document.getElementById('lc_card').value,prog=document.getElementById('lc_prog').value;
   const pts=parseFloat(document.getElementById('lc_pts').value),miles=parseFloat(document.getElementById('lc_miles').value);
@@ -521,31 +649,34 @@ function logConv(){
   saveAll();render();show('log');
 }
 
-/* LOG */
+/* ── LOG ── */
 function rLog(){
   const el=document.getElementById('log');
-  let h=`<div class="stitle">Conversion log</div>`;
-  if(!S.log.length){h+=`<p style="text-align:center;padding:2.5rem;color:var(--text3);font-size:13px">No conversions logged yet.</p>`;}
+  let h=`<div class="section-group"><div class="stitle">Conversion log</div>`;
+  if(!S.log.length){h+=`<div class="empty-state">No conversions logged yet.</div>`;}
   else{
     const tKF=S.log.filter(l=>l.prog==='kf').reduce((s,l)=>s+l.miles,0),tCM=S.log.filter(l=>l.prog==='cm').reduce((s,l)=>s+l.miles,0);
     h+=`<div class="mgrid" style="margin-bottom:1.5rem">
-      <div class="met"><div class="ml">Total → KrisFlyer</div><div class="mv">${fmtN(tKF)}</div><div class="ms">miles converted</div></div>
-      <div class="met"><div class="ml">Total → Asia Miles</div><div class="mv">${fmtN(tCM)}</div><div class="ms">miles converted</div></div>
+      <div class="met"><div class="ml">→ KrisFlyer</div><div class="mv">${fmtN(tKF)}</div><div class="ms">miles converted</div></div>
+      <div class="met"><div class="ml">→ Asia Miles</div><div class="mv">${fmtN(tCM)}</div><div class="ms">miles converted</div></div>
       <div class="met"><div class="ml">Entries</div><div class="mv">${S.log.length}</div><div class="ms">conversions</div></div>
     </div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Card</th><th>Owner</th><th>Points out</th><th>Programme</th><th>Miles in</th><th></th></tr></thead><tbody>`;
+    <div class="card"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Date</th><th>Card</th><th>Owner</th><th>Points out</th><th>Programme</th><th>Miles in</th><th></th></tr></thead><tbody>`;
     S.log.forEach((l,i)=>{
-      h+=`<tr><td>${fmtDate(l.date)}</td><td style="font-weight:bold">${l.card}</td><td style="color:var(--text2)">${l.owner}</td>
-      <td style="color:var(--red);font-family:'SF Mono','Fira Code',monospace">−${fmtN(l.pts)} ${l.cur}</td>
+      h+=`<tr><td style="color:var(--text3)">${fmtDate(l.date)}</td><td style="font-weight:500">${l.card}</td>
+      <td style="font-size:12px;color:${l.owner==='Cason'?'#0071e3':'#bf5af2'}">${l.owner}</td>
+      <td style="color:var(--red-text)">−${fmtN(l.pts)} ${l.cur}</td>
       <td><span class="bdg ${l.prog==='kf'?'binfo':'bok'}">${l.prog==='kf'?'KrisFlyer':'Asia Miles'}</span></td>
-      <td style="color:var(--green);font-weight:bold;font-family:'SF Mono','Fira Code',monospace">+${fmtN(l.miles)}</td>
-      <td><button class="btn btnd" style="padding:3px 10px;font-size:11px" onclick="undoLog(${i})">Undo</button></td></tr>`;
+      <td style="color:var(--green-text);font-weight:500">+${fmtN(l.miles)}</td>
+      <td><button class="btn btnd btn-sm" onclick="undoLog(${i})">Undo</button></td></tr>`;
     });
-    h+=`</tbody></table></div><p style="font-size:11px;color:var(--text3);margin-top:8px;font-family:'SF Mono','Fira Code',monospace">Undo reverses the points deduction and miles credit.</p>`;
+    h+=`</tbody></table></div></div>
+    <p style="font-size:12px;color:var(--text3);margin-top:.75rem">Undo reverses the points deduction and miles credit.</p>`;
   }
+  h+=`</div>`;
   el.innerHTML=h;
 }
-
 function undoLog(i){
   const l=S.log[i];
   if(!confirm(`Undo this conversion?\n\n+${fmtN(l.pts)} ${l.cur} back to ${l.card}\n−${fmtN(l.miles)} miles from ${l.prog==='kf'?'KrisFlyer':'Asia Miles'}`))return;
@@ -555,49 +686,51 @@ function undoLog(i){
   S.log.splice(i,1);saveAll();render();
 }
 
-/* AWARD CHART */
+/* ── AWARD CHART ── */
 function rChart(){
   const el=document.getElementById('chart');
   let ct='biz_saver';
   function draw(tab){
     ct=tab;
-    let h=`<div class="stitle">KrisFlyer award chart <span style="font-size:12px;font-weight:normal;color:var(--text3)">— effective 1 Nov 2025, one-way from Singapore</span></div>
-    <div class="tab-inner">
-      <button class="tab-btn ${tab==='biz_saver'?'active':''}" onclick="window._ct('biz_saver')">Business — Saver</button>
-      <button class="tab-btn ${tab==='biz_adv'?'active':''}" onclick="window._ct('biz_adv')">Business — Advantage</button>
-      <button class="tab-btn ${tab==='pe_saver'?'active':''}" onclick="window._ct('pe_saver')">Premium Economy — Saver</button>
+    let h=`<div class="section-group"><div class="stitle">KrisFlyer award chart</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:1.25rem">One-way from Singapore · Effective 1 Nov 2025</p>
+    <div class="tab-row">
+      <button class="tab-btn ${tab==='biz_saver'?'active':''}" onclick="window._ct('biz_saver')">Business Saver</button>
+      <button class="tab-btn ${tab==='biz_adv'?'active':''}" onclick="window._ct('biz_adv')">Business Advantage</button>
+      <button class="tab-btn ${tab==='pe_saver'?'active':''}" onclick="window._ct('pe_saver')">Premium Economy Saver</button>
     </div>`;
-    if(tab==='pe_saver')h+=`<div style="font-size:12px;color:var(--text2);margin-bottom:.9rem;padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm)">Premium Economy is Saver-only — no Advantage option for this cabin.</div>`;
-    h+=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Destination</th><th>Examples</th><th style="text-align:right">One-way</th><th style="text-align:right">Return</th><th></th></tr></thead><tbody>`;
+    if(tab==='pe_saver')h+=`<p style="font-size:13px;color:var(--text3);margin-bottom:1rem">Premium Economy is Saver-only — no Advantage option exists for this cabin.</p>`;
+    h+=`<div class="card"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Destination</th><th>Examples</th><th style="text-align:right">One-way</th><th style="text-align:right">Return</th><th></th></tr></thead><tbody>`;
     const kfA=(S.mb.kf.bal||0)+totalKF();
     ZONES.forEach(z=>{
       const m=tab==='biz_saver'?z.biz_saver:tab==='biz_adv'?z.biz_adv:z.pe_saver;
-      if(m===null){h+=`<tr><td>${z.label}</td><td style="color:var(--text3)">${z.eg}</td><td colspan="3" style="text-align:center;color:var(--text3);font-style:italic">Not available</td></tr>`;return;}
+      if(m===null){h+=`<tr><td>${z.label}</td><td style="color:var(--text3);font-size:12px">${z.eg}</td><td colspan="3" style="text-align:center;color:var(--text3);font-size:12px">Not available</td></tr>`;return;}
       const n=m*1000,can=kfA>=n;
-      h+=`<tr><td style="font-weight:bold">${z.label}</td><td style="color:var(--text3);font-size:12px;font-family:'SF Mono','Fira Code',monospace">${z.eg}</td>
-      <td style="text-align:right;font-weight:bold;font-family:'SF Mono','Fira Code',monospace">${fmtN(n)}</td>
-      <td style="text-align:right;color:var(--text2);font-family:'SF Mono','Fira Code',monospace">${fmtN(n*2)}</td>
-      <td style="text-align:right">${can?'<span class="bdg bok">Can redeem</span>':'<span style="font-size:11px;color:var(--text3)">Need '+fmtN(n-kfA)+' more</span>'}</td></tr>`;
+      h+=`<tr><td style="font-weight:500">${z.label}</td><td style="color:var(--text3);font-size:12px">${z.eg}</td>
+      <td style="text-align:right;font-weight:600">${fmtN(n)}</td>
+      <td style="text-align:right;color:var(--text2)">${fmtN(n*2)}</td>
+      <td style="text-align:right">${can?'<span class="bdg bok">Can redeem</span>':'<span style="font-size:12px;color:var(--text3)">Need '+fmtN(n-kfA)+' more</span>'}</td></tr>`;
     });
-    h+=`</tbody></table></div>
-    <p style="margin-top:.7rem;font-size:11px;color:var(--text3);font-family:'SF Mono','Fira Code',monospace">Source: SIA KrisFlyer (1 Nov 2025). Taxes payable separately. Availability not guaranteed.</p>
-    <div style="margin-top:2rem"><div class="stitle">Set a goal from this chart</div>
-    <div class="card">
-      <div class="g2" style="margin-bottom:10px">
+    h+=`</tbody></table></div></div>
+    <p style="font-size:12px;color:var(--text3);margin:.75rem 0 2rem">Source: Singapore Airlines KrisFlyer (1 Nov 2025). "Can redeem" includes current KF balance + all CC points if fully converted. Taxes and fees payable separately.</p></div>
+
+    <div class="section-group"><div class="stitle">Set a goal from this chart</div>
+    <div class="card"><div class="card-inner">
+      <div class="g2" style="margin-bottom:12px">
         <div><div class="flabel">Destination</div><select id="cg_zone">${ZONES.map(z=>`<option value="${z.id}">${z.label}</option>`).join('')}</select></div>
         <div><div class="flabel">Cabin & award type</div><select id="cg_type"><option value="biz_saver">Business Saver</option><option value="biz_adv">Business Advantage</option><option value="pe_saver">Prem Economy Saver</option></select></div>
       </div>
-      <div class="g2" style="margin-bottom:10px">
+      <div class="g2" style="margin-bottom:12px">
         <div><div class="flabel">Passengers</div><select id="cg_pax"><option value="1">1 pax — one-way</option><option value="2">2 pax — one-way</option><option value="1rt">1 pax — return</option><option value="2rt">2 pax — return</option></select></div>
         <div><div class="flabel">Goal name</div><input id="cg_name" placeholder="e.g. Tokyo Business x2"></div>
       </div>
       <button class="btn btnp" style="width:100%" onclick="goalFromChart()">Add as goal</button>
-    </div></div>`;
+    </div></div></div>`;
     el.innerHTML=h;
   }
   window._ct=draw;draw(ct);
 }
-
 window.goalFromChart=function(){
   const zid=document.getElementById('cg_zone').value,type=document.getElementById('cg_type').value,pax=document.getElementById('cg_pax').value;
   const name=document.getElementById('cg_name').value.trim()||'New goal';
@@ -608,9 +741,9 @@ window.goalFromChart=function(){
   qsave('goals',S.goals);render();show('goals');
 };
 
-/* THEME */
+/* ── THEME ── */
 function toggleTheme(){
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark',next=isDark?'light':'dark';
+  const dark=document.documentElement.getAttribute('data-theme')==='dark',next=dark?'light':'dark';
   document.documentElement.setAttribute('data-theme',next);
   document.getElementById('themeIcon').textContent=next==='dark'?'☀️':'🌙';
   document.getElementById('themeLabel').textContent=next==='dark'?'Light':'Dark';
@@ -618,8 +751,7 @@ function toggleTheme(){
 }
 (function(){
   try{
-    const s=localStorage.getItem('miles_theme');
-    if(s==='dark'){
+    if(localStorage.getItem('miles_theme')==='dark'){
       document.documentElement.setAttribute('data-theme','dark');
       window.addEventListener('DOMContentLoaded',()=>{
         const ic=document.getElementById('themeIcon'),lb=document.getElementById('themeLabel');
