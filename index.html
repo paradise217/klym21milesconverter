@@ -397,7 +397,8 @@ sb.auth.onAuthStateChange(async(event,session)=>{
     document.getElementById('appScreen').style.display='block';
     const name=session.user.email===USERS.cason?'Cason':'Ellerie';
     document.getElementById('userEmail').textContent=name;
-    await loadDB();render();
+    await loadDB();
+    show('dashboard');
   }
 });
 
